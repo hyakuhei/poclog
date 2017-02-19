@@ -6,3 +6,5 @@ applications:
   name: poclog
   host: poclog
   disk_quota: 1024M
+  services:
+  - poclog-db

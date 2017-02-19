@@ -1,7 +1,7 @@
 {
-  "name": "NodejsStarterApp",
+  "name": "pocsog",
   "version": "0.0.1",
-  "description": "A sample nodejs app for Bluemix",
+  "description": "A simple pocsag logging framework",
   "scripts": {
     "start": "node app.js"
   },
@@ -9,7 +9,9 @@
     "cfenv": "^1.0.0",
     "express": "^4.12.4",
     "jade": "^1.10.0",
-    "cloudant": "*"
+    "cloudant": "*",
+    "fs-sync": "^0.2.5",
+    "properties-parser": "^0.2.3"
   },
   "repository": {}
 }
