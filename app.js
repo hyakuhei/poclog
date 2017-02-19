@@ -16,16 +16,15 @@ var appEnv = cfenv.getAppEnv();
 var cloudant_url;
 var cf_env;
 var services;
-if(process.env.CF_ENV){
-  cf_env = JSON.parse(process.env.CF_ENV);
-  services = cf_env.VCAP_SERVICES;
+if(process.env.VCAP_SERVICES){
+  services = JSON.parse(process.env.VCAP_SERVICES);
   if(services.cloudantNoSQLDB){
     cloudant_url = services.cloudantNoSQLDB[0].credentials.url;
     console.log("Name = " + services.cloudantNoSQLDB[0].name);
     console.log("URL = " + services.cloudantNoSQLDB[0].credentials.url);
     console.log("username = " + services.cloudantNoSQLDB[0].credentials.username);
   }else{
-    console.warn("No cloudantNoSQLDB service available")
+    console.error("No cloudantNoSQLDB service available")
     console.log(services)
   }
 }else{
