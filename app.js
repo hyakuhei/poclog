@@ -9,12 +9,11 @@ var express = require('express');
 // for more info, see: https://www.npmjs.com/package/cfenv
 var cfenv = require('cfenv');
 var websiteTitle = require('./websitetitle');
-var cloudant = require('cloudant');
+var Cloudant = require('cloudant');
 
 //get environment information
 var appEnv = cfenv.getAppEnv();
 var cloudant_url;
-var cf_env;
 var services;
 if(process.env.VCAP_SERVICES){
   services = JSON.parse(process.env.VCAP_SERVICES);
@@ -28,8 +27,33 @@ if(process.env.VCAP_SERVICES){
     console.log(services)
   }
 }else{
-  console.warn("No CF_ENV");
+  console.warn("No VCAP_SERVICES");
+  console.warn("If running locally to run the following:")
   console.warn('export CF_ENV="$(cat env.json)"')
+}
+
+creds = services.cloudantNoSQLDB[0].credentials;
+cloudant = Cloudant({url: creds.url, username: creds.username, password:creds.password}),
+db = cloudant.db.use("poclog-dev")
+dbindex = "json: poclog-utime"
+dbquery = {
+  "selector": {
+    "poclog-utime": {
+      "$gt": 0
+    }
+  },
+  "fields": [
+    "ric",
+    "name",
+    "time",
+    "date",
+    "message"
+  ],
+  "sort": [
+    {
+      "poclog-utime": "asc"
+    }
+  ]
 }
 
 
@@ -42,17 +66,16 @@ app.set('view engine', 'jade');
 app.get('/', function (req, res) {
   res.render('home', {title: websiteTitle.getTitle()});
 });
-app.get('/alaska', function (req, res) {
-  res.render('alaska',  {title: websiteTitle.getTitle()});
-});
-app.get('/antarctica', function (req, res) {
-  res.render('antarctica',  {title: websiteTitle.getTitle()});
-});
-app.get('/australia', function (req, res) {
-  res.render('australia',  {title: websiteTitle.getTitle()});
-});
+
 app.get('/env', function(req, res) {
-  res.render('env', {title: websiteTitle.getTitle(), creds: services.cloudantNoSQLDB[0].credentials} );
+  //Fetch an ordered list of records to pass to the rendererererer
+  db.find(dbquery, function(err, result){
+    if (err){
+      return console.warn(err)
+    }
+    console.log('Found %d documents that match query', result.docs.length);
+    res.render('env', {title: websiteTitle.getTitle(), results:result.docs});
+  })
 });
 
 // get the app environment from Cloud Foundry
