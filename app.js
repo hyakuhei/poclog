@@ -62,10 +62,6 @@ app.use(express.static('public'));
 // serve the files out of ./public as our main files
 app.set('view engine', 'jade');
 
-app.get('/', function (req, res) {
-  res.render('home', {title: websiteTitle.getTitle()});
-});
-
 app.get('/ingest', function (req, res){
   var parms = req.query
   parms['poclog-utime'] = Date.now()
@@ -79,7 +75,7 @@ app.get('/ingest', function (req, res){
   res.status(200).end()
 });
 
-app.get('/env', function(req, res) {
+app.get('/', function(req, res) {
   //Fetch an ordered list of records to pass to the rendererererer
   db.find(dbquery, function(err, result){
     if (err){
