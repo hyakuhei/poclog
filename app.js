@@ -56,7 +56,6 @@ dbquery = {
   ]
 }
 
-
 // create a new express server
 var app = express();
 app.use(express.static('public'));
@@ -65,6 +64,19 @@ app.set('view engine', 'jade');
 
 app.get('/', function (req, res) {
   res.render('home', {title: websiteTitle.getTitle()});
+});
+
+app.get('/ingest', function (req, res){
+  var parms = req.query
+  parms['poclog-utime'] = Date.now()
+  console.log(req.query['ric'])
+  db.insert(parms, function(err, body, header){
+    if (err) {
+      return console.log('insert error', err.message)
+    }
+    console.log("Added record")
+  })
+  res.status(200).end()
 });
 
 app.get('/env', function(req, res) {
