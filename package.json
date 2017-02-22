@@ -6,12 +6,14 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "bcrypt": "^1.0.2",
     "cfenv": "^1.0.0",
+    "cloudant": "*",
     "express": "^4.12.4",
     "jade": "^1.10.0",
-    "cloudant": "*",
-    "fs-sync": "^0.2.5",
-    "properties-parser": "^0.2.3"
+    "passport": "^0.3.2",
+    "passport-http": "^0.3.0",
+    "sha256": "^0.2.0"
   },
   "repository": {}
 }

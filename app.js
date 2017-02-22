@@ -10,6 +10,11 @@ var express = require('express');
 var cfenv = require('cfenv');
 var websiteTitle = require('./websitetitle');
 var Cloudant = require('cloudant');
+var passport = require('passport');
+var Strategy = require('passport-http').BasicStrategy
+
+// Use bcrypt for password hashes
+var bcrypt = require('bcrypt');
 
 //get environment information
 var appEnv = cfenv.getAppEnv();
@@ -56,6 +61,42 @@ dbquery = {
   ]
 }
 
+userQuery = {
+  "selector": {
+    "username": {
+      "$eq": null
+    }
+  },
+  "fields": [
+    "username",
+    "hash"
+  ],
+  "sort": [
+    {
+      "_id": "asc"
+    }
+  ]
+}
+
+passport.use(new Strategy(
+  function(username, password, done){
+    var uq = userQuery
+    uq['selector']['username'] = username;
+    db.find(uq, function(err, result){
+      if (err){
+        console.log("Could not find user: " + username);
+        return done(err);
+      }
+      //Check password from result against
+      if(bcrypt.compareSync(password, result.docs[0]['hash'])){
+        return done(null, username);
+      }else{
+        return done(null, false)
+      }
+    })
+  }
+))
+
 // create a new express server
 var app = express();
 app.use(express.static('public'));
@@ -75,7 +116,8 @@ app.get('/ingest', function (req, res){
   res.status(200).end()
 });
 
-app.get('/', function(req, res) {
+app.get('/', passport.authenticate('basic', {session:false}), function(req, res) {
+
   //Fetch an ordered list of records to pass to the rendererererer
   db.find(dbquery, function(err, result){
     if (err){
