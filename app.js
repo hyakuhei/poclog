@@ -17,6 +17,7 @@ var Strategy = require('passport-http').BasicStrategy
 var bcrypt = require('bcrypt');
 
 //get environment information
+//This is the magic that lets it work in Bluemix
 var appEnv = cfenv.getAppEnv();
 var cloudant_url;
 var services;
