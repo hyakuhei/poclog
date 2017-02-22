@@ -2,7 +2,8 @@ language: node_js
 node_js:
   - "4.1"
 addons:
-  - packages:
+  apt:
+    packages:
     - gcc-4.8
     - g++-4.8
 deploy:
