@@ -35,7 +35,7 @@ if(process.env.VCAP_SERVICES){
 }else{
   console.warn("No VCAP_SERVICES");
   console.warn("If running locally to run the following:")
-  console.warn('export CF_ENV="$(cat env.json)"')
+  console.warn('export VCAP_SERVICES="$(cat env.json)"')
 }
 
 creds = services.cloudantNoSQLDB[0].credentials;
