@@ -11,6 +11,7 @@ var cfenv = require('cfenv');
 var websiteTitle = require('./websitetitle');
 var Cloudant = require('cloudant');
 var passport = require('passport');
+var helmet = require('helmet')
 var Strategy = require('passport-http').BasicStrategy
 
 // Use bcrypt for password hashes
@@ -100,6 +101,7 @@ passport.use(new Strategy(
 
 // create a new express server
 var app = express();
+app.use(helmet())
 app.use(express.static('public'));
 // serve the files out of ./public as our main files
 app.set('view engine', 'jade');
