@@ -80,6 +80,32 @@ userQuery = {
   ]
 }
 
+dbquery_timebounded = {
+  "selector":{
+        "$or":[
+          {"$nor":[
+            {"message": "Daily Transmitter Test"},
+            {"message": "System Test from Telent"},
+            {"message": "System Test"},
+            {"message":"TONE ONLY"}
+          ]},
+          {"poclog-utime":{"$gte":0}}
+        ]
+  },
+  "fields": [
+    "ric",
+    "name",
+    "time",
+    "date",
+    "message"
+  ],
+  "sort": [
+    {
+      "poclog-utime": "desc"
+    }
+  ]
+}
+
 passport.use(new Strategy(
   function(username, password, done){
     var uq = userQuery
@@ -122,7 +148,18 @@ app.get('/ingest', function (req, res){
 app.get('/', passport.authenticate('basic', {session:false}), function(req, res) {
 
   //Fetch an ordered list of records to pass to the rendererererer
-  db.find(dbquery, function(err, result){
+  var q = dbquery_timebounded;
+  var now = Date.now();
+  try{
+    //This is brittle, if you cahnge the query this will break
+    q['selector']['$or'][1]['poclog-utime']['$gte'] = now - (1000*60*60*24);
+  } catch (ex) {
+      console.log('Cannot set time for timebound query. Did the query change without updating here?')
+      console.log('Defaulting to simple query')
+      q = dbquery;
+  }
+
+  db.find(q, function(err, result){
     if (err){
       return console.warn(err)
     }
@@ -132,7 +169,6 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
 });
 
 // get the app environment from Cloud Foundry
-
 // start server on the specified port and binding host
 app.listen(appEnv.port, appEnv.bind, function() {
 
