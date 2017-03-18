@@ -84,10 +84,10 @@ dbquery_timebounded = {
   "selector":{
         "$or":[
           {"$nor":[
-            {"message": "Daily Transmitter Test"},
-            {"message": "System Test from Telent"},
-            {"message": "System Test"},
-            {"message":"TONE ONLY"}
+            {"message": "RGFpbHkgVHJhbnNtaXR0ZXIgVGVzdA=="},
+            {"message": "U3lzdGVtIFRlc3QgZnJvbSBUZWxlbnQ="},
+            {"message": "U3lzdGVtIFRlc3Q="},
+            {"message":"VE9ORSBPTkxZ"}
           ]},
           {"poclog-utime":{"$gte":0}}
         ]
@@ -153,6 +153,11 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
   try{
     //This is brittle, if you cahnge the query this will break
     q['selector']['$or'][1]['poclog-utime']['$gte'] = now - (1000*60*60*24);
+    for (var i=0;i<q['selector']['$or'][0]['$nor'].length;i++) {
+      var s = Buffer.from(q['selector']['$or'][0]['$nor'][i]['message'], 'base64').toString('ascii')
+      q['selector']['$or'][0]['$nor'][i]['message']=s
+      console.log(s)
+    }
   } catch (ex) {
       console.log('Cannot set time for timebound query. Did the query change without updating here?')
       console.log('Defaulting to simple query')
