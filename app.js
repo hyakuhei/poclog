@@ -97,13 +97,43 @@ dbquery_timebounded = {
     "name",
     "time",
     "date",
-    "message"
+    "message",
+    "poclog-utime"
   ],
   "sort": [
     {
       "poclog-utime": "desc"
     }
   ]
+}
+
+var chosenDBQuery = {};
+try{
+  //This is brittle, if you change the query this will break
+  var chosenDBQuery = dbquery_timebounded;
+  var now = Date.now()
+  console.log("Attempting to unpack base64 schtuff")
+  chosenDBQuery['selector']['$or'][1]['poclog-utime']['$gte'] = now - (1000*60*60*24);
+  for (var i=0;i<chosenDBQuery['selector']['$or'][0]['$nor'].length;i++) {
+    var s = Buffer.from(chosenDBQuery['selector']['$or'][0]['$nor'][i]['message'], 'base64').toString('ascii')
+    chosenDBQuery['selector']['$or'][0]['$nor'][i]['message']=s
+  //  console.log(s)
+  }
+} catch (ex) {
+    console.warn('Cannot set time for timebound query. Did the query change without updating here?')
+    console.error('Defaulting to simple query')
+    console.error(ex)
+    chosenDBQuery = dbquery;
+}
+
+function compareResult(a,b) {
+  if (a['poclog-utime'] > b['poclog-utime']){
+    return -1
+  }
+  if (a['poclog-utime'] < b['poclog-utime']){
+    return 1
+  }
+  return 0
 }
 
 passport.use(new Strategy(
@@ -147,28 +177,13 @@ app.get('/ingest', function (req, res){
 
 app.get('/', passport.authenticate('basic', {session:false}), function(req, res) {
 
-  //Fetch an ordered list of records to pass to the rendererererer
-  var q = dbquery_timebounded;
-  var now = Date.now();
-  try{
-    //This is brittle, if you cahnge the query this will break
-    q['selector']['$or'][1]['poclog-utime']['$gte'] = now - (1000*60*60*24);
-    for (var i=0;i<q['selector']['$or'][0]['$nor'].length;i++) {
-      var s = Buffer.from(q['selector']['$or'][0]['$nor'][i]['message'], 'base64').toString('ascii')
-      q['selector']['$or'][0]['$nor'][i]['message']=s
-      console.log(s)
-    }
-  } catch (ex) {
-      console.log('Cannot set time for timebound query. Did the query change without updating here?')
-      console.log('Defaulting to simple query')
-      q = dbquery;
-  }
-
-  db.find(q, function(err, result){
+  db.find(chosenDBQuery, function(err, result){
     if (err){
       return console.warn(err)
     }
+    //For some reason sort doesn't work
     console.log('Found %d documents that match query', result.docs.length);
+    result.docs.sort(compareResult)
     res.render('env', {title: websiteTitle.getTitle(), results:result.docs});
   })
 });
