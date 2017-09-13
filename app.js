@@ -1,5 +1,7 @@
 /*jshint node:true*/
 
+/*eslint no-magic-numbers: ["error", { "ignoreArrayIndexes": true }]*/
+/*eslint no-process-env: "error"*/
 
 // This application uses express as it's web server
 // for more info, see: http://expressjs.com
@@ -8,137 +10,86 @@ var express = require('express');
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
 var cfenv = require('cfenv');
+var fs = require('fs');
 var websiteTitle = require('./websitetitle');
 var Cloudant = require('cloudant');
 var passport = require('passport');
-var helmet = require('helmet')
-var Strategy = require('passport-http').BasicStrategy
-
-// Use bcrypt for password hashes
+var helmet = require('helmet');
+var Strategy = require('passport-http').BasicStrategy;
 var bcrypt = require('bcrypt');
+var util = require('util')
+var authnQuery = require('./queries/authentication.json');
+var defaultRecordQuery = require('./queries/default_records.json');
+var maskedRecordQuery = require('./queries/time_masked_records.json');
+
+var MESSAGE_MASK = "MESSAGE_MASK";
 
 //get environment information
 //This is the magic that lets it work in Bluemix
 var appEnv = cfenv.getAppEnv();
-var cloudant_url;
-var services;
-if(process.env.VCAP_SERVICES){
+var services = null;
+
+if (process.env.VCAP_SERVICES){
   services = JSON.parse(process.env.VCAP_SERVICES);
-  if(services.cloudantNoSQLDB){
-    cloudant_url = services.cloudantNoSQLDB[0].credentials.url;
+  if (services.cloudantNoSQLDB) {
     console.log("Name = " + services.cloudantNoSQLDB[0].name);
     console.log("URL = " + services.cloudantNoSQLDB[0].credentials.url);
-    console.log("username = " + services.cloudantNoSQLDB[0].credentials.username);
-  }else{
-    console.error("No cloudantNoSQLDB service available")
-    console.log(services)
+    console.log(
+      "username = " + services.cloudantNoSQLDB[0].credentials.username);
+  } else {
+    console.error("No cloudantNoSQLDB service available");
+    console.log(services);
   }
-}else{
+} else {
   console.warn("No VCAP_SERVICES");
-  console.warn("If running locally to run the following:")
-  console.warn('export VCAP_SERVICES="$(cat env.json)"')
+  console.warn("If running locally to run the following:");
+  console.warn('export VCAP_SERVICES="$(cat vcap_services.json)"');
+  throw new Error("Cannot run without VCAP_SERVICES");
 }
 
-creds = services.cloudantNoSQLDB[0].credentials;
-cloudant = Cloudant({url: creds.url, username: creds.username, password:creds.password}),
-db = cloudant.db.use("poclog-dev")
-dbindex = "json: poclog-utime"
-dbquery = {
-  "selector": {
-    "poclog-utime": {
-      "$gt": 0
-    }
-  },
-  "fields": [
-    "ric",
-    "name",
-    "time",
-    "date",
-    "message"
-  ],
-  "sort": [
-    {
-      "poclog-utime": "desc"
-    }
-  ]
-}
+var creds = services.cloudantNoSQLDB[0].credentials;
+var cloudant = Cloudant({
+  "password": creds.password,
+  "url": creds.url,
+  "username": creds.username
+  }),
+  db = cloudant.db.use("poclog-dev");
 
-userQuery = {
-  "selector": {
-    "username": {
-      "$eq": null
-    }
-  },
-  "fields": [
-    "username",
-    "hash"
-  ],
-  "sort": [
-    {
-      "_id": "asc"
-    }
-  ]
-}
-
-dbquery_timebounded = {
-  "selector":{
-        "$or":[
-          {"$nor":[
-            {"message": "RGFpbHkgVHJhbnNtaXR0ZXIgVGVzdA=="},
-            {"message": "U3lzdGVtIFRlc3QgZnJvbSBUZWxlbnQ="},
-            {"message": "U3lzdGVtIFRlc3Q="},
-            {"message":"VE9ORSBPTkxZ"}
-          ]},
-          {"poclog-utime":{"$gte":0}}
-        ]
-  },
-  "fields": [
-    "ric",
-    "name",
-    "time",
-    "date",
-    "message",
-    "poclog-utime"
-  ],
-  "sort": [
-    {
-      "poclog-utime": "desc"
-    }
-  ]
-}
-
-var chosenDBQuery = {};
-try{
-  //This is brittle, if you change the query this will break
-  var chosenDBQuery = dbquery_timebounded;
-  var now = Date.now()
-  console.log("Attempting to unpack base64 schtuff")
-  chosenDBQuery['selector']['$or'][1]['poclog-utime']['$gte'] = now - (1000*60*60*24);
-  for (var i=0;i<chosenDBQuery['selector']['$or'][0]['$nor'].length;i++) {
-    var s = Buffer.from(chosenDBQuery['selector']['$or'][0]['$nor'][i]['message'], 'base64').toString('ascii')
-    chosenDBQuery['selector']['$or'][0]['$nor'][i]['message']=s
-  //  console.log(s)
+//Load queries from the paths set above
+var getRecordQuery = function(err) {
+  if (err) {
+    return err;
   }
-} catch (ex) {
-    console.warn('Cannot set time for timebound query. Did the query change without updating here?')
-    console.error('Defaulting to simple query')
-    console.error(ex)
-    chosenDBQuery = dbquery;
-}
 
-function compareResult(a,b) {
+  if (process.env[MESSAGE_MASK]){
+    var mask = JSON.parse(process.env[MESSAGE_MASK]);
+    //console.log(maskedRecordQuery);
+    //console.log(mask.masks);
+    maskedRecordQuery.selector.$or[0].$nor = maskedRecordQuery.selector.$or[0].$nor.concat(mask.masks);
+    console.log("built masked query");
+    //console.log(maskedRecordQuery);
+    console.log(util.inspect(maskedRecordQuery, false, null))
+    return maskedRecordQuery;
+  }
+  console.log("returning default query")
+
+  return defaultRecordQuery;
+};
+
+
+function compareResult (a,b) {
   if (a['poclog-utime'] > b['poclog-utime']){
-    return -1
+    return -1;
   }
   if (a['poclog-utime'] < b['poclog-utime']){
-    return 1
+    return 1;
   }
-  return 0
+  return 0;
 }
 
 passport.use(new Strategy(
   function(username, password, done){
-    var uq = userQuery
+    var uq = authnQuery;
     uq['selector']['username'] = username;
     db.find(uq, function(err, result){
       if (err){
@@ -149,41 +100,42 @@ passport.use(new Strategy(
       if(bcrypt.compareSync(password, result.docs[0]['hash'])){
         return done(null, username);
       }else{
-        return done(null, false)
+        return done(null, false);
       }
-    })
+    });
   }
-))
+));
 
 // create a new express server
 var app = express();
-app.use(helmet())
+app.use(helmet());
 app.use(express.static('public'));
 // serve the files out of ./public as our main files
 app.set('view engine', 'jade');
 
 app.get('/ingest', function (req, res){
-  var parms = req.query
-  parms['poclog-utime'] = Date.now()
-  console.log(req.query['ric'])
+  var parms = req.query;
+  parms['poclog-utime'] = Date.now();
+  console.log(req.query['ric']);
   db.insert(parms, function(err, body, header){
     if (err) {
-      return console.log('insert error', err.message)
+      return console.log('insert error', err.message);
     }
-    console.log("Added record")
+    console.log("Added record");
   })
-  res.status(200).end()
+  res.status(200).end();
 });
 
 app.get('/', passport.authenticate('basic', {session:false}), function(req, res) {
-
-  db.find(chosenDBQuery, function(err, result){
+  var recordQuery = getRecordQuery();
+  console.log(recordQuery)
+  db.find(recordQuery, function(err, result){
     if (err){
-      return console.warn(err)
+      return console.warn(err);
     }
     //For some reason sort doesn't work
     console.log('Found %d documents that match query', result.docs.length);
-    result.docs.sort(compareResult)
+    result.docs.sort(compareResult);
     res.render('env', {title: websiteTitle.getTitle(), results:result.docs});
   })
 });

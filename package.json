@@ -10,6 +10,7 @@
     "cfenv": "^1.0.0",
     "cloudant": "*",
     "express": "^4.12.4",
+    "foreman": "^2.0.0",
     "helmet": "^3.4.1",
     "jade": "^1.10.0",
     "passport": "^0.3.2",
