@@ -1,0 +1,16 @@
+{
+  "selector": {
+    "username": {
+      "$eq": null
+    }
+  },
+  "fields": [
+    "username",
+    "hash"
+  ],
+  "sort": [
+    {
+      "_id": "asc"
+    }
+  ]
+}

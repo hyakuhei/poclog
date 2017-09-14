@@ -20,7 +20,6 @@ var bcrypt = require('bcrypt');
 var util = require('util')
 var authnQuery = require('./queries/authentication.json');
 var defaultRecordQuery = require('./queries/default_records.json');
-var maskedRecordQuery = require('./queries/time_masked_records.json');
 
 var MESSAGE_MASK = "MESSAGE_MASK";
 
@@ -67,16 +66,6 @@ var getRecordQuery = function(err) {
     return err;
   }
 
-  if (process.env[MESSAGE_MASK]){
-    var mask = JSON.parse(process.env[MESSAGE_MASK]);
-    //console.log(maskedRecordQuery);
-    //console.log(mask.masks);
-    maskedRecordQuery.selector.$or[0].$nor = maskedRecordQuery.selector.$or[0].$nor.concat(mask.masks);
-    console.log("built masked query");
-    //console.log(maskedRecordQuery);
-    console.log(util.inspect(maskedRecordQuery, false, null))
-    return maskedRecordQuery;
-  }
   console.log("returning default query")
 
   return defaultRecordQuery;

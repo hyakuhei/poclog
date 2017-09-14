@@ -1,0 +1,19 @@
+{
+  "selector": {
+    "poclog-utime": {
+      "$gt": 0
+    }
+  },
+  "fields": [
+    "ric",
+    "name",
+    "time",
+    "date",
+    "message"
+  ],
+  "sort": [
+    {
+      "poclog-utime": "desc"
+    }
+  ]
+}
