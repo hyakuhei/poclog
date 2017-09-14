@@ -1,5 +1,5 @@
 {
-  "name": "pocsog",
+  "name": "poclog",
   "version": "0.0.1",
   "description": "A simple pocsag logging framework",
   "scripts": {

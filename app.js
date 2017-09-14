@@ -47,6 +47,12 @@ if (process.env.VCAP_SERVICES){
   throw new Error("Cannot run without VCAP_SERVICES");
 }
 
+if (process.env.CLOUDANT_USERNAME){
+  console.log("CLOUDANT_USERNAME = " + process.env.CLOUDANT_USERNAME);
+} else{
+  throw new Error("Cannot run without CLOUDANT environment variables");
+}
+
 var creds = services.cloudantNoSQLDB[0].credentials;
 var cloudant = Cloudant({
   "password": creds.password,
@@ -142,7 +148,8 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
 
 // get the app environment from Cloud Foundry
 // start server on the specified port and binding host
-app.listen(appEnv.port, appEnv.bind, function() {
+console.log("Listening on: " + appEnv.bind)
+app.listen(appEnv.port, '0.0.0.0', function() {
 
 	// print a message when the server starts listening
   console.log("server starting on " + appEnv.url);
