@@ -46,12 +46,6 @@ if (process.env.VCAP_SERVICES){
   throw new Error("Cannot run without VCAP_SERVICES");
 }
 
-if (process.env.CLOUDANT_USERNAME){
-  console.log("CLOUDANT_USERNAME = " + process.env.CLOUDANT_USERNAME);
-} else{
-  throw new Error("Cannot run without CLOUDANT environment variables");
-}
-
 var creds = services.cloudantNoSQLDB[0].credentials;
 var cloudant = Cloudant({
   "password": creds.password,
