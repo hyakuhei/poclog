@@ -137,7 +137,7 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
 
 // get the app environment from Cloud Foundry
 // start server on the specified port and binding host
-console.log("Listening on: " + appEnv.bind)
+console.log("Listening on: " + appEnv.bind + ":" + appEnv.port)
 app.listen(appEnv.port, appEnv.bind, function() {
 
 	// print a message when the server starts listening

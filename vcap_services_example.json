@@ -1,0 +1,24 @@
+{
+  "cloudantNoSQLDB": [
+   {
+    "credentials": {
+     "host": "some_uuid_value-bluemix.cloudant.com",
+     "password": "some_password_value",
+     "port": 443,
+     "url": "some_https_url_value-bluemix.cloudant.com",
+     "username": "some_username_value-bluemix"
+    },
+    "label": "cloudantNoSQLDB",
+    "name": "some_db_name_value",
+    "plan": "some_plan_value",
+    "provider": null,
+    "syslog_drain_url": null,
+    "tags": [
+     "data_management",
+     "ibm_created",
+     "lite",
+     "ibm_dedicated_public"
+    ]
+   }
+  ]
+}

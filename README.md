@@ -41,3 +41,24 @@ for your local or remote Cloudant instance.
   ]
 }
 ```
+
+If running locally, sue the following to load appropriate environment variables:
+```
+source environment.sh
+```
+Note that you will have to have the appropriate vcap_services.json and vcap_application.json files
+
+## Docker
+Build with the following:
+```
+docker build -t poclog .
+```
+
+Run with the following:
+```
+docker run -d -p 6099:6099 \
+-e VCAP_SERVICES="$(cat vcap_services.json)" \
+-e VCAP_APPLICATION="$(cat vcap_application.json)" \
+-e CF_INSTANCE_PORT=6099 \
+poclog
+```
