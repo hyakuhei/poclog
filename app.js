@@ -60,8 +60,14 @@ var getRecordQuery = function(err) {
     return err;
   }
 
-  console.log("returning default query")
-
+  if (process.env.DAYLIMIT) {
+    console.log("returning query limited to " + process.env.DAYLIMIT + " days")
+    var recordQuery = defaultRecordQuery;
+    var past = Date.now() - (1000 * 60 *60 * 24 * process.env.DAYLIMIT);
+    recordQuery["selector"]["poclog-utime"]["$gt"] = past;
+    return recordQuery;
+  }
+  console.log("DAYLIMIT not set, returning default query")
   return defaultRecordQuery;
 };
 
@@ -132,6 +138,7 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
 // get the app environment from Cloud Foundry
 // start server on the specified port and binding host
 console.log("Listening on: " + appEnv.bind)
+appEnv.bind = "0.0.0.0"
 app.listen(appEnv.port, appEnv.bindß, function() {
 
 	// print a message when the server starts listening
