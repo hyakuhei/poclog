@@ -20,6 +20,7 @@ var bcrypt = require('bcrypt');
 var util = require('util')
 var authnQuery = require('./queries/authentication.json');
 var defaultRecordQuery = require('./queries/default_records.json');
+var defaultDestroyRecordQuery = require('./queries/destroy.json');
 
 var MESSAGE_MASK = "MESSAGE_MASK";
 
@@ -119,6 +120,39 @@ app.get('/ingest', function (req, res){
     console.log("Added record");
   })
   res.status(200).end();
+});
+
+app.get('/destroy', passport.authenticate('basic', {session:false}), function(req, res) {
+  var destroyq = defaultDestroyRecordQuery;
+  var parms = req.query;
+  if (!("strfield" in parms) || !("strvalue" in parms)){
+    console.log(parms);
+    console.log('destroy error - missing parameters');
+    res.status(400).end();
+  }else{
+    console.log("Looks good, lets delete all instances of " + parms['strfield'] + " with value " + parms['strvalue']);
+    var selector = {};
+    selector[parms['strfield']] = { '$eq' : parms["strvalue"] };
+    destroyq['selector'] = selector;
+    console.log(destroyq);
+    db.find(destroyq, function(err, result){
+      if (err){
+        return console.warn(err);
+        res.status(500).end();
+      }
+      console.log('Found %d documents to delete', result.docs.length);
+      for (var i=0, len=result.docs.length; i < len; i++){
+        result.docs[i]["_deleted"] = true;
+      }
+      console.log(result.docs)
+      db.bulk({docs:result.docs}, function(err,body){
+        if (err){
+          return console.warn(err);
+        }
+      });
+      res.redirect('/');
+    });
+  }
 });
 
 app.get('/', passport.authenticate('basic', {session:false}), function(req, res) {

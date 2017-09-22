@@ -1,0 +1,16 @@
+{
+  "selector": {
+    "strfield": {
+      "$eq": "strvalue"
+    }
+  },
+  "fields": [
+    "_id",
+    "_rev"
+  ],
+  "sort": [
+    {
+      "poclog-utime": "desc"
+    }
+  ]
+}
