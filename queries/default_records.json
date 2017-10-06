@@ -10,7 +10,8 @@
     "time",
     "date",
     "message",
-    "poclog-utime"
+    "poclog-utime",
+    "_id"
   ],
   "sort": [
     {

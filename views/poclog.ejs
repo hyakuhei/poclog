@@ -20,6 +20,7 @@
               <th>Station</th>
               <th>Message</th>
               <th>Date / Time</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -28,6 +29,7 @@
                 <td><%= results[i].name %></td>
                 <td><%= results[i].message %></td>
                 <td><%= results[i].date %> <%= results[i].time %></td>
+                <td><a href="/destroy?strfield=_id&strvalue=<%= results[i]._id %>"><button type="button" class="btn btn-outline-danger">Delete</button></a></td>
               </tr>
             <% } %>
           </tbody>
