@@ -107,7 +107,7 @@ var app = express();
 app.use(helmet());
 app.use(express.static('public'));
 // serve the files out of ./public as our main files
-app.set('view engine', 'jade');
+app.set('view engine', 'ejs');
 
 app.get('/ingest', function (req, res){
   var parms = req.query;
@@ -165,7 +165,8 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
     //For some reason sort doesn't work
     console.log('Found %d documents that match query', result.docs.length);
     result.docs.sort(compareResult);
-    res.render('env', {title: websiteTitle.getTitle(), results:result.docs});
+    console.log(result.docs);
+    res.render('poclog', {results:result.docs});
   })
 });
 
