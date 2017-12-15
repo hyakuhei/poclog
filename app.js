@@ -64,6 +64,8 @@ var getRecordQuery = function(err) {
   if (process.env.DAYLIMIT) {
     console.log("returning query limited to " + process.env.DAYLIMIT + " days")
     var recordQuery = defaultRecordQuery;
+    console.log("my record query is:")
+    console.log(recordQuery);
     var past = Date.now() - (1000 * 60 *60 * 24 * process.env.DAYLIMIT);
     recordQuery["selector"]["poclog-utime"]["$gt"] = past;
     return recordQuery;
@@ -123,7 +125,7 @@ app.get('/ingest', function (req, res){
 });
 
 app.get('/destroy', passport.authenticate('basic', {session:false}), function(req, res) {
-  var destroyq = defaultDestroyRecordQuery;
+  var destroyq = JSON.parse(JSON.stringify(defaultDestroyRecordQuery));
   var parms = req.query;
   if (!("strfield" in parms) || !("strvalue" in parms)){
     console.log(parms);
@@ -168,6 +170,27 @@ app.get('/', passport.authenticate('basic', {session:false}), function(req, res)
     console.log(result.docs);
     res.render('poclog', {results:result.docs});
   })
+});
+
+app.get('/filter', passport.authenticate('basic', {session:false}), function(req, res) {
+  var filterq = JSON.parse(JSON.stringify(defaultRecordQuery));
+  var parms = req.query;
+  if (!("by" in parms) || !("val" in parms)){
+    console.log(parms);
+    console.log('destroy error - missing parameters');
+    res.status(400).end();
+  }else{
+    var selector = {};
+    selector[parms['by']] = {'$eq':parms["val"]};
+    filterq['selector'] = selector;
+    db.find(filterq, (err,result)=>{
+      if (err){
+        return console.warn(err);
+        res.status(500).end();
+      }
+      res.render('poclog', {results:result.docs});
+    });
+  }
 });
 
 // get the app environment from Cloud Foundry

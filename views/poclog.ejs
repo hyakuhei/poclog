@@ -29,9 +29,9 @@
           <tbody>
             <% for(var i=0; i<results.length; i++){ %>
               <tr>
-                <td><%= results[i].name %></td>
-                <td><%= results[i].ric %></td>
-                <td><%= results[i].message %></td>
+                <td><a href="/filter?by=name&val=<%= results[i].name %>"><%= results[i].name %></a></td>
+                <td><a href="/filter?by=ric&val=<%= results[i].ric %>"><%= results[i].ric %></a></td>
+                <td><a href="/filter?by=message&val=<%= results[i].message %>"><%= results[i].message %></a></td>
                 <td><%= results[i].date %> <%= results[i].time %></td>
                 <td><a href="/destroy?strfield=_id&strvalue=<%= results[i]._id %>"><button type="button" class="btn btn-outline-danger">Delete</button></a></td>
               </tr>
