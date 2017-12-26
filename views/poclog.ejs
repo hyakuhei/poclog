@@ -20,20 +20,20 @@
           <thead>
             <tr>
               <th>Station</th>
-              <th>RIC</th>
-              <th>Message</th>
               <th>Date / Time</th>
+              <th>Message</th>
+              
               <th>Delete</th>
             </tr>
           </thead>
           <tbody>
             <% for(var i=0; i<results.length; i++){ %>
               <tr>
-                <td class="col-md-2"><a href="/filter?by=name&val=<%= results[i].name %>"><%= results[i].name %></a></td>
-                <td class="col-md-2"><a href="/filter?by=ric&val=<%= results[i].ric %>"><%= results[i].ric %></a></td>
-                <td class="col-md-4"><a href="/filter?by=message&val=<%= results[i].message %>"><%= results[i].message %></a></td>
-                <td class="col-md-2"><%= results[i].date %> <%= results[i].time %></td>
-                <td class="col-md-2"><a href="/destroy?strfield=_id&strvalue=<%= results[i]._id %>"><button type="button" class="btn btn-outline-danger">Delete</button></a></td>
+                <td><a href="/filter?by=name&val=<%= results[i].name %>"><%= results[i].name %></a><br><a href="/filter?by=ric&val=<%= results[i].ric %>"><%= results[i].ric %></a></td>
+                <td><%= results[i].date %> <%= results[i].time %></td>
+                <td><a href="/filter?by=message&val=<%= results[i].message %>"><%= results[i].message %></a></td>
+                
+                <td><a href="/destroy?strfield=_id&strvalue=<%= results[i]._id %>"><button type="button" class="btn btn-outline-danger">Delete</button></a></td>
               </tr>
             <% } %>
           </tbody>
