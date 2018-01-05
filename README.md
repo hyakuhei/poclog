@@ -1,4 +1,4 @@
-## A simple logging platform for message posting
+## A simple logging platform
 
 This is based on the example here:
 https://www.ibm.com/developerworks/cloud/library/cl-bluemix-fundamentals-create-and-deploy-a-node-app-to-the-cloud/
