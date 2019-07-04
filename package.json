@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "A simple pocsag logging framework",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "dependencies": {
     "bcrypt": "^1.0.2",
@@ -16,7 +18,9 @@
     "jade": "^1.10.0",
     "passport": "^0.3.2",
     "passport-http": "^0.3.0",
-    "sha256": "^0.2.0"
+    "sha256": "^0.2.0",
+    "snyk": "^1.189.0"
   },
-  "repository": {}
+  "repository": {},
+  "snyk": true
 }
