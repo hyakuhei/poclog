@@ -6,7 +6,7 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "bcrypt": "^1.0.2",
+    "bcrypt": "^5.0.0",
     "cfenv": "^1.0.0",
     "cloudant": "*",
     "ejs": "^2.5.7",
